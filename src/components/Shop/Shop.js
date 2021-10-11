@@ -12,7 +12,7 @@ const Shop = () => {
     const [displayProducts, setDisplayProducts] = useState([]);
 
     useEffect(() => {
-        fetch('./products.JSON')
+        fetch('./products.json')
             .then(res => res.json())
             .then(data => {
                 setProducts(data);
@@ -40,7 +40,7 @@ const Shop = () => {
         const exists = cart.find(pd => pd.key === product.key);
         let newCart = [];
         if (exists) {
-            const rest = cart.filter(pd => pd.key != product.key);
+            const rest = cart.filter(pd => pd.key !== product.key);
             exists.quantity = exists.quantity + 1;
             newCart = [...rest, exists]
         }

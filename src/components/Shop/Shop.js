@@ -4,37 +4,45 @@ import Product from '../Product/Product';
 import { addToDb, getStoredCart } from '../../utilities/fakedb';
 import './Shop.css';
 import { Link } from 'react-router-dom';
+import useCart from '../../hooks/useCart';
 
 const Shop = () => {
     const [products, setProducts] = useState([]);
-    const [cart, setCart] = useState([]);
+    const [cart, setCart] = useCart();
+    const [page, setPage] = useState(0);
+    const [pageCount, setPageCount] = useState(0);
+
     // products to be rendered on the UI
     const [displayProducts, setDisplayProducts] = useState([]);
-
+    // console.log(cart);
+    const size = 10;
     useEffect(() => {
-        fetch('./products.json')
+        fetch(`http://localhost:5000/products?page=${page}&&size=${size}`)
             .then(res => res.json())
             .then(data => {
-                setProducts(data);
-                setDisplayProducts(data);
+                setProducts(data.products);
+                setDisplayProducts(data.products);
+                const count = data.count;
+                const pageNumber = Math.ceil(count / size);
+                setPageCount(pageNumber);
             });
-    }, []);
+    }, [page]);
 
-    useEffect(() => {
-        if (products.length) {
-            const savedCart = getStoredCart();
-            const storedCart = [];
-            for (const key in savedCart) {
-                const addedProduct = products.find(product => product.key === key);
-                if (addedProduct) {
-                    const quantity = savedCart[key];
-                    addedProduct.quantity = quantity;
-                    storedCart.push(addedProduct);
-                }
-            }
-            setCart(storedCart);
-        }
-    }, [products])
+    // useEffect(() => {
+    //     if (products.length) {
+    //         const savedCart = getStoredCart();
+    //         const storedCart = [];
+    //         for (const key in savedCart) {
+    //             const addedProduct = products.find(product => product.key === key);
+    //             if (addedProduct) {
+    //                 const quantity = savedCart[key];
+    //                 addedProduct.quantity = quantity;
+    //                 storedCart.push(addedProduct);
+    //             }
+    //         }
+    //         setCart(storedCart);
+    //     }
+    // }, [products])
 
     const handleAddToCart = (product) => {
         const exists = cart.find(pd => pd.key === product.key);
@@ -57,7 +65,8 @@ const Shop = () => {
     const handleSearch = event => {
         const searchText = event.target.value;
 
-        const matchedProducts = products.filter(product => product.name.toLowerCase().includes(searchText.toLowerCase()));
+        const matchedProducts = products.filter(product =>
+            product.name.toLowerCase().includes(searchText.toLowerCase()));
         setDisplayProducts(matchedProducts);
     }
 
@@ -79,6 +88,16 @@ const Shop = () => {
                         >
                         </Product>)
                     }
+                    <div className="pagination">
+                        {
+                            [...Array(pageCount).keys()].map(number =>
+                                <button
+                                    className={number === page ? 'selected' : ''}
+                                    key={number}
+                                    onClick={() => setPage(number)}
+                                >{number + 1}</button>)
+                        }
+                    </div>
                 </div>
                 <div className="cart-container">
                     <Cart cart={cart}>
